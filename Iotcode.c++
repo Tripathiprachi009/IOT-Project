@@ -1,0 +1,69 @@
+const int waterSensorPin = A0;
+const int trigPin = 3;      // Ultrasonic sensor's trigger pin
+const int echoPin = 4;      // Ultrasonic sensor's echo pin
+const int buzzerPositivePin = 6;  // Buzzer's positive pin (connected to D6)
+const int buzzerNegativePin = 7;  // Buzzer's negative pin (connected to D7)
+
+void setup() {
+    Serial.begin(9600);
+    pinMode(waterSensorPin, INPUT);
+    pinMode(trigPin, OUTPUT);
+    pinMode(echoPin, INPUT);
+    pinMode(buzzerPositivePin, OUTPUT);
+    pinMode(buzzerNegativePin, OUTPUT);
+}
+
+void loop() {
+    // Water Sensor
+    int waterSensorValue = digitalRead(waterSensorPin);
+    if (waterSensorValue == HIGH) {
+        Serial.println("Water detected!");
+        activateBuzzer(true);  // Custom beep for water sensor
+    } else {
+        Serial.println("No water.");
+    }
+
+    // Ultrasonic Sensor
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+
+    long duration = pulseIn(echoPin, HIGH);
+    float distance = duration * 0.034 / 2;
+
+    Serial.print("Distance: ");
+    Serial.println(distance);
+
+    if (distance < 10) {  // Adjust the distance threshold as needed
+        activateBuzzer(false);  // Standard beep for ultrasonic sensor
+    }
+
+    delay(1000);
+}
+
+void activateBuzzer(bool isWaterSensor) {
+    if (isWaterSensor) {
+        // Custom beep pattern for water sensor detection
+        for (int i = 0; i < 3; i++) {
+            digitalWrite(buzzerPositivePin, HIGH);
+            digitalWrite(buzzerNegativePin, LOW);
+            delay(100);  // Buzz for 100 milliseconds
+            digitalWrite(buzzerPositivePin, LOW);
+            digitalWrite(buzzerNegativePin, HIGH);
+            delay(100);  // Silence for 100 milliseconds
+        }
+    } else {
+        // Standard beep pattern for ultrasonic sensor detection
+        digitalWrite(buzzerPositivePin, HIGH);
+        digitalWrite(buzzerNegativePin, LOW);
+        delay(200);  // Buzz for 200 milliseconds
+        digitalWrite(buzzerPositivePin, LOW);
+        digitalWrite(buzzerNegativePin, HIGH);
+        delay(200);  // Silence for 200 milliseconds
+    }
+
+    digitalWrite(buzzerPositivePin, LOW);
+    digitalWrite(buzzerNegativePin, HIGH);
+}
